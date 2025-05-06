@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.euphony.no_annoying_toast.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "refmap": "no_annoying_toast.refmap.json",
+  "mixins": [
+  ],
+  "client": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
