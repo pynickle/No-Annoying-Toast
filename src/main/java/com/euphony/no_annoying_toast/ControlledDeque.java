@@ -1,12 +1,8 @@
 package com.euphony.no_annoying_toast;
 
-import java.util.ArrayDeque;
+import net.minecraft.client.gui.components.toasts.*;
 
-import net.minecraft.client.gui.components.toasts.AdvancementToast;
-import net.minecraft.client.gui.components.toasts.RecipeToast;
-import net.minecraft.client.gui.components.toasts.SystemToast;
-import net.minecraft.client.gui.components.toasts.Toast;
-import net.minecraft.client.gui.components.toasts.TutorialToast;
+import java.util.ArrayDeque;
 
 public class ControlledDeque extends ArrayDeque<Toast> {
 

@@ -1,30 +1,33 @@
 package com.euphony.no_annoying_toast;
 
-import java.util.ArrayDeque;
-import java.util.BitSet;
-import java.util.Deque;
-import java.util.Iterator;
-
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
-
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.Options;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.toasts.Toast;
 import net.minecraft.client.gui.components.toasts.ToastManager;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.Mth;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.fml.loading.FMLLoader;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.jetbrains.annotations.NotNull;
+import org.joml.Matrix3x2fStack;
 
+import java.util.ArrayDeque;
+import java.util.BitSet;
+import java.util.Deque;
+import java.util.Iterator;
+
+@OnlyIn(Dist.CLIENT)
 public class BetterToastManager extends ToastManager {
 
     private Deque<BetterToastInstance<?>> topDownList = new ArrayDeque<>();
 
     public BetterToastManager() {
-        super(Minecraft.getInstance());
+        super(Minecraft.getInstance(), new Options(Minecraft.getInstance(), FMLLoader.getGamePath().toFile()));
         this.queued = new ControlledDeque();
         this.occupiedSlots = new BitSet(ToastConfig.INSTANCE.toastCount.get());
     }
@@ -115,6 +118,7 @@ public class BetterToastManager extends ToastManager {
         return ToastConfig.INSTANCE.toastCount.get() - this.occupiedSlots.cardinality();
     }
 
+    @OnlyIn(Dist.CLIENT)
     public class BetterToastInstance<T extends Toast> extends ToastInstance<T> {
 
         protected int forcedShowTime = 0;
@@ -146,30 +150,24 @@ public class BetterToastManager extends ToastManager {
             long sysTime = Util.getMillis();
             this.calculateVisiblePortion(sysTime);
             int trueIdx = 0;
-            PoseStack stack = guiGraphics.pose();
-            stack.pushPose();
+            Matrix3x2fStack stack = guiGraphics.pose();
+            stack.pushMatrix();
 
             if (ToastConfig.INSTANCE.topDown.get()) {
                 int x = ToastConfig.INSTANCE.startLeft.get() ? 0 : guiWidth - this.toast.width();
-                stack.translate(x, (trueIdx - 1) * this.toast.height() + this.toast.height() * this.visiblePortion, 800 + this.firstSlotIndex);
+                stack.translate(x, (trueIdx - 1) * this.toast.height() + this.toast.height() * this.visiblePortion);
             }
             else if (ToastConfig.INSTANCE.startLeft.get()) {
-                stack.translate(-this.toast.width() + this.toast.width() * this.visiblePortion, this.firstSlotIndex * this.toast.height(), 800 + this.firstSlotIndex);
+                stack.translate(-this.toast.width() + this.toast.width() * this.visiblePortion, this.firstSlotIndex * this.toast.height());
             }
             else {
-                stack.translate(guiWidth - this.toast.width() * this.visiblePortion, this.firstSlotIndex * this.toast.height(), 800 + this.firstSlotIndex);
+                stack.translate(guiWidth - this.toast.width() * this.visiblePortion, this.firstSlotIndex * this.toast.height());
             }
 
-            stack.translate(ToastConfig.INSTANCE.offsetX.get(), ToastConfig.INSTANCE.offsetY.get(), 0);
+            stack.translate(ToastConfig.INSTANCE.offsetX.get(), ToastConfig.INSTANCE.offsetY.get());
             Toast.Visibility visibility = Toast.Visibility.SHOW;
             if (this.animationStartTime != -1) this.toast.render(guiGraphics, BetterToastManager.this.minecraft.font, sysTime - this.becameFullyVisibleAt);
-            stack.popPose();
-            /*
-            guiGraphics.pose().translate((float)guiWidth - (float)this.toast.width() * this.visiblePortion, (float)(this.firstSlotIndex * 32), 800.0F);
-            this.toast.render(guiGraphics, BetterToastManager.this.minecraft.font, this.fullyVisibleFor);
-            guiGraphics.pose().popPose();
-
-             */
+            stack.popMatrix();
         }
 
         @Override
